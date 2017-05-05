@@ -1,0 +1,15 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:f="/lib/form" xmlns:c="/lib/credentials">
+  <f:entry title="${%Schedule}" field="spec" help="/descriptor/hudson.triggers.TimerTrigger/help/spec">
+    <f:textarea checkUrl="'${rootURL}/trigger/TimerTrigger/check?value='+encodeURIComponent(this.value)"/>
+  </f:entry>
+  <f:entry field="credentialsId" title="${%Amazon EC2 Credentials}">
+    <c:select/>
+  </f:entry>
+  <f:entry field="regionName" title="${%Amazon ECS Region Name}" description="AWS regionName for EC2. If not specified, use us-east-1.">
+    <f:select />
+  </f:entry>
+  <f:entry title="${%Ami Name Pattern}" field="pattern" description="Wildcard pattern for AMI Name">
+    <f:textbox />
+  </f:entry>
+</j:jelly>

@@ -1,0 +1,4 @@
+<?jelly escape-by-default='true'?>
+<div>
+  Poll for new AMIs and start a build for the latest matching AMI.
+</div>
