@@ -1,33 +1,21 @@
 package hudson.plugins.awsamitrigger;
 
+import com.amazonaws.services.ec2.model.Image;
+
 import hudson.model.Cause;
 
 public final class AwsAmiTriggerCause extends Cause {
 
-  private final String credentialsId;
-  private final String regionName;
   private final String pattern;
+  private final Image image;
 
-  public AwsAmiTriggerCause(AwsAmiTrigger config) {
-    this.credentialsId = config.getCredentialsId();
-    this.regionName = config.getRegionName();
-    this.pattern = config.getPattern();
-  }
-
-  public String getCredentialsId() {
-    return credentialsId;
-  }
-
-  public String getRegionName() {
-    return regionName;
-  }
-
-  public String getPattern() {
-    return pattern;
+  public AwsAmiTriggerCause(AwsAmiTrigger trigger, Image image) {
+    this.pattern = trigger.getPattern();
+    this.image = image;
   }
 
   @Override
   public String getShortDescription() {
-    return Messages.Cause(pattern);
+    return Messages.Cause(pattern, image.getDescription());
   }
 }

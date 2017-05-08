@@ -1,10 +1,14 @@
 package hudson.plugins.awsamitrigger;
 
+import java.io.IOException;
+import java.util.Date;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 
+import com.cloudbees.jenkins.plugins.awscredentials.AmazonWebServicesCredentials;
 import com.cloudbees.jenkins.plugins.awscredentials.AWSCredentialsHelper;
 
 import antlr.ANTLRException;
@@ -17,8 +21,8 @@ import hudson.util.ListBoxModel;
 
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.RegionUtils;
-import com.amazonaws.services.ec2.AmazonEC2Client;
-import com.cloudbees.jenkins.plugins.awscredentials.AmazonWebServicesCredentials;
+import com.amazonaws.services.ec2.model.Image;
+import com.amazonaws.util.DateUtils;
 
 import jenkins.model.Jenkins;
 
@@ -29,10 +33,9 @@ public final class AwsAmiTrigger extends Trigger<BuildableItem> {
   private final String credentialsId;
   private final String regionName;
   private final String pattern;
-  private final String lastRun;
-  private final String lastMatch;
+  private Date lastRun;
 
-  private EC2Service ec2Service;
+  private transient EC2Service ec2Service;
 
   /**
    * Create a new {@link AwsAmiTrigger}.
@@ -57,8 +60,7 @@ public final class AwsAmiTrigger extends Trigger<BuildableItem> {
     this.credentialsId = credentialsId;
     this.regionName = regionName;
     this.pattern = pattern;
-    this.lastRun = "";
-    this.lastMatch = "";
+    this.lastRun = new Date();
   }
 
   private synchronized EC2Service getEc2Service() {
@@ -68,13 +70,21 @@ public final class AwsAmiTrigger extends Trigger<BuildableItem> {
     return ec2Service;
   }
 
-  private AmazonEC2Client getAmazonEC2Client() {
-    return getEc2Service().getAmazonEC2Client();
-  }
-
   @Override
   public void run() {
-    LOGGER.log(Level.INFO, "Running..." + toString());
+    List<Image> images = getEc2Service().describeImages(pattern);
+    if(!images.isEmpty()) {
+      if(DateUtils.parseISO8601Date(images.get(0).getCreationDate()).compareTo(lastRun) >= 0) {
+        LOGGER.log(Level.FINE, "Triggering build for new image: " + images.get(0).toString());
+        lastRun = new Date();
+        try {
+          job.save();
+          job.scheduleBuild(new AwsAmiTriggerCause(this, images.get(0)));
+        } catch(IOException e) {
+          LOGGER.log(Level.WARNING, "Failed to save last run time, build not triggered", e);
+        }
+      }
+    }
   }
 
   public String getCredentialsId() {

@@ -4,14 +4,13 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Deque;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import org.apache.commons.lang.ObjectUtils;
-import org.apache.commons.lang.StringUtils;
 
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.regions.Region;
@@ -20,12 +19,19 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.DescribeImagesRequest;
 import com.amazonaws.services.ec2.model.DescribeImagesResult;
+import com.amazonaws.services.ec2.model.Image;
 import com.amazonaws.services.ec2.model.Filter;
+import com.amazonaws.util.DateUtils;
+
 import com.cloudbees.jenkins.plugins.awscredentials.AWSCredentialsHelper;
 import com.cloudbees.jenkins.plugins.awscredentials.AmazonWebServicesCredentials;
 
 import hudson.ProxyConfiguration;
+
 import jenkins.model.Jenkins;
+
+import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang.StringUtils;
 
 public final class EC2Service {
   private static final Logger LOGGER = Logger.getLogger(EC2Service.class.getName());
@@ -81,10 +87,19 @@ public final class EC2Service {
   }
 
   // state is available
-  public DescribeImagesResult describeImages(String filter) {
+  public List<Image> describeImages(String pattern) {
     final AmazonEC2Client client = getAmazonEC2Client();
+
     final DescribeImagesRequest request = new DescribeImagesRequest();
-    request.setFilters(Collections.singleton(new Filter("name",Collections.singletonList(filter))));
-    return client.describeImages(request);
+    request.setFilters(Collections.singleton(new Filter("name",Collections.singletonList(pattern))));
+
+    final List<Image> images = client.describeImages(request).getImages();
+    Collections.sort(images, new Comparator<Image>() {
+      @Override
+      public int compare(Image a, Image b) {
+        return DateUtils.parseISO8601Date(b.getCreationDate()).compareTo(DateUtils.parseISO8601Date(a.getCreationDate()));
+      }
+    });
+    return images;
   }
 }
