@@ -6,12 +6,16 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.kohsuke.stapler.DataBoundConstructor;
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.RegionUtils;
+import com.amazonaws.services.ec2.model.Image;
+import com.amazonaws.util.DateUtils;
 
 import com.cloudbees.jenkins.plugins.awscredentials.AmazonWebServicesCredentials;
 import com.cloudbees.jenkins.plugins.awscredentials.AWSCredentialsHelper;
 
 import antlr.ANTLRException;
+
 import hudson.Extension;
 import hudson.model.BuildableItem;
 import hudson.model.Item;
@@ -19,12 +23,9 @@ import hudson.triggers.Trigger;
 import hudson.triggers.TriggerDescriptor;
 import hudson.util.ListBoxModel;
 
-import com.amazonaws.regions.Region;
-import com.amazonaws.regions.RegionUtils;
-import com.amazonaws.services.ec2.model.Image;
-import com.amazonaws.util.DateUtils;
-
 import jenkins.model.Jenkins;
+
+import org.kohsuke.stapler.DataBoundConstructor;
 
 public final class AwsAmiTrigger extends Trigger<BuildableItem> {
 
@@ -33,6 +34,7 @@ public final class AwsAmiTrigger extends Trigger<BuildableItem> {
   private final String credentialsId;
   private final String regionName;
   private final String pattern;
+  private final List<AwsAmiTriggerFilter> filters;
   private Date lastRun;
 
   private transient EC2Service ec2Service;
@@ -48,18 +50,21 @@ public final class AwsAmiTrigger extends Trigger<BuildableItem> {
    *          aws region name
    * @param pattern
    *          pattern for ami name
+   * @param filters
+   *          list of filters
    *
    * @throws ANTLRException
    *           if unable to parse the crontab specification
    */
   @DataBoundConstructor
-  public AwsAmiTrigger(String spec, String credentialsId, String regionName, String pattern)
+  public AwsAmiTrigger(String spec, String credentialsId, String regionName, String pattern, List<AwsAmiTriggerFilter> filters)
       throws ANTLRException {
     super(spec);
 
     this.credentialsId = credentialsId;
     this.regionName = regionName;
     this.pattern = pattern;
+    this.filters = filters;
     this.lastRun = new Date();
   }
 
@@ -97,6 +102,10 @@ public final class AwsAmiTrigger extends Trigger<BuildableItem> {
 
   public String getPattern() {
     return pattern;
+  }
+
+  public List<AwsAmiTriggerFilter> getFilters() {
+    return filters;
   }
 
   @Extension

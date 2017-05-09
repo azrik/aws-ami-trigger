@@ -14,6 +14,14 @@ public final class AwsAmiTriggerCause extends Cause {
     this.image = image;
   }
 
+  public String getPattern() {
+    return pattern;
+  }
+
+  public Image getImage() {
+    return image;
+  }
+
   @Override
   public String getShortDescription() {
     return Messages.Cause(pattern, image.getDescription());

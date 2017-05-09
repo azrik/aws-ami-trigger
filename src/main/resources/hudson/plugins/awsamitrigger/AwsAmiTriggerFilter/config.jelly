@@ -1,0 +1,6 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:f="/lib/form" xmlns:c="/lib/credentials">
+  <f:entry title="${%Ami Name Pattern}" field="name" description="Wildcard pattern for AMI Name">
+    <f:textbox />
+  </f:entry>
+</j:jelly>

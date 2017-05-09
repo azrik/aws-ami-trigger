@@ -12,4 +12,16 @@
   <f:entry title="${%Ami Name Pattern}" field="pattern" description="Wildcard pattern for AMI Name">
     <f:textbox />
   </f:entry>
+  <f:entry title="${%Filters}" field="filters">
+    <f:repeatable var="it" name="filters" items="${instance.filters}" minimum="1">
+      <table width="100%">
+        <st:include page="config.jelly" class="hudson.plugins.awsamitrigger.AwsAmiTriggerFilter"/>
+        <f:entry title="">
+          <div align="right">
+            <f:repeatableDeleteButton/>
+          </div>
+        </f:entry>
+      </table>
+    </f:repeatable>
+  </f:entry>
 </j:jelly>
