@@ -86,18 +86,23 @@ public final class EC2Service {
     return AWSCredentialsHelper.getCredentials(credentialsId, Jenkins.getActiveInstance());
   }
 
-  // state is available
-  public List<Image> describeImages(String pattern) {
+  public List<Image> describeImages(Collection<Filter> filters) {
     final AmazonEC2Client client = getAmazonEC2Client();
 
     final DescribeImagesRequest request = new DescribeImagesRequest();
-    request.setFilters(Collections.singleton(new Filter("name",Collections.singletonList(pattern))));
+    request.setFilters(filters);
 
     final List<Image> images = client.describeImages(request).getImages();
     Collections.sort(images, new Comparator<Image>() {
       @Override
       public int compare(Image a, Image b) {
-        return DateUtils.parseISO8601Date(b.getCreationDate()).compareTo(DateUtils.parseISO8601Date(a.getCreationDate()));
+        String aDate = a.getCreationDate();
+        String bDate = b.getCreationDate();
+        if(StringUtils.isEmpty(aDate) || StringUtils.isEmpty(bDate)) {
+          return bDate.compareTo(aDate);
+        } else {
+          return DateUtils.parseISO8601Date(bDate).compareTo(DateUtils.parseISO8601Date(aDate));
+        }
       }
     });
     return images;

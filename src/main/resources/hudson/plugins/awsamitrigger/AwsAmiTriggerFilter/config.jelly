@@ -1,6 +1,32 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:f="/lib/form" xmlns:c="/lib/credentials">
-  <f:entry title="${%Ami Name Pattern}" field="name" description="Wildcard pattern for AMI Name">
-    <f:textbox />
+  <f:entry title="${%Name}" field="name" description="The name of the AMI (provided during image creation)">
+    <f:textbox/>
   </f:entry>
+  <f:entry title="${%Description}" field="description" description="The description of the image (provided during image creation)">
+    <f:textbox/>
+  </f:entry>
+  <f:entry title="${%Tags}" field="tags" description="Format :key=*value*[;:key=*value] - the key/tag combination(s) of a tag assigned to the resource">
+    <f:textbox/>
+  </f:entry>
+  <f:advanced>
+    <f:section title="Advanced Filters">
+      <f:entry title="${%Architecture}" field="architecture" description="The image architecture (i386|x86_64)">
+        <f:select/>
+      </f:entry>
+      <f:entry title="${%Owner Alias}" field="ownerAlias" description="The AWS account alias (amazon|aws-marketplace|microsoft)">
+        <f:select/>
+      </f:entry>
+      <f:entry title="${%Owner Id}" field="ownerId" description="The AWS account ID of the image owner">
+        <f:textbox/>
+      </f:entry>
+      <f:entry title="${%Product Code}" field="productCode" description="The product code">
+        <f:textbox/>
+      </f:entry>
+      <f:entry title="${%Public}" field="shared" description="Whether the image is public">
+        <f:select/>
+      </f:entry>
+    </f:section>
+  </f:advanced>
+  <f:validateButton title="${%Test Filter}" progress="${%Testing...}" method="testFilter" with="credentialsId,regionName,name,description,architecture,ownerAlias,ownerId,productCode,tag,shared" />
 </j:jelly>

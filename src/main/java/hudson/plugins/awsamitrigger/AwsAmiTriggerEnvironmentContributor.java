@@ -16,7 +16,6 @@ public final class AwsAmiTriggerEnvironmentContributor extends EnvironmentContri
   private void populateEnvironment(Run<?,?> run, EnvVars envVars, TaskListener taskListener) {
     AwsAmiTriggerCause cause = run.getCause(AwsAmiTriggerCause.class);
     if (cause != null) {
-      envVars.put("awsAmiTriggerPattern", cause.getPattern());
       envVars.put("awsAmiTriggerImageArchitecture", cause.getImage().getArchitecture());
       envVars.put("awsAmiTriggerImageCreationDate", cause.getImage().getCreationDate());
       envVars.put("awsAmiTriggerImageDescription", cause.getImage().getDescription());

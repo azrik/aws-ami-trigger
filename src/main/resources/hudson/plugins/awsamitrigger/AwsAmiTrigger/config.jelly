@@ -1,19 +1,21 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:f="/lib/form" xmlns:c="/lib/credentials">
+  <style type="text/css">
+  .repeated-chunk.first .repeatable-delete {
+    visibility: hidden;
+  }
+  </style>
   <f:entry title="${%Schedule}" field="spec" help="/descriptor/hudson.triggers.TimerTrigger/help/spec">
     <f:textarea checkUrl="'${rootURL}/trigger/TimerTrigger/check?value='+encodeURIComponent(this.value)"/>
   </f:entry>
-  <f:entry field="credentialsId" title="${%Amazon EC2 Credentials}">
+  <f:entry title="${%Amazon EC2 Credentials}" field="credentialsId" description="AWS credentials">
     <c:select/>
   </f:entry>
-  <f:entry field="regionName" title="${%Amazon ECS Region Name}" description="AWS regionName for EC2. If not specified, use us-east-1.">
+  <f:entry title="${%Amazon ECS Region Name}" field="regionName" description="AWS regionName for EC2 or if not specified, use us-east-1">
     <f:select />
   </f:entry>
-  <f:entry title="${%Ami Name Pattern}" field="pattern" description="Wildcard pattern for AMI Name">
-    <f:textbox />
-  </f:entry>
   <f:entry title="${%Filters}" field="filters">
-    <f:repeatable var="it" name="filters" items="${instance.filters}" minimum="1">
+    <f:repeatable var="it" name="filters" items="${instance.filters}">
       <table width="100%">
         <st:include page="config.jelly" class="hudson.plugins.awsamitrigger.AwsAmiTriggerFilter"/>
         <f:entry title="">
