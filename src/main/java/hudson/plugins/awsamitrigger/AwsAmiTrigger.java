@@ -45,7 +45,7 @@ public final class AwsAmiTrigger extends Trigger<BuildableItem> {
 
   private final static int MAX_TEST_IMAGES = 10;
   private final static Logger LOGGER = Logger.getLogger(AwsAmiTrigger.class.getName());
-  private final static Pattern tagsPattern =  Pattern.compile("^:[^=]+=[^=]+.*");
+  private final static Pattern tagsPattern =  Pattern.compile("^[^=]+=[^=]+.*");
 
   private final String credentialsId;
   private final String regionName;
@@ -89,20 +89,20 @@ public final class AwsAmiTrigger extends Trigger<BuildableItem> {
 
   @Override
   public void run() {
-    for(AwsAmiTriggerFilter filter : filters) {
-      List<Image> images = getEc2Service().describeImages(filter.toAWSFilters());
-      if(!images.isEmpty()) {
-        if(DateUtils.parseISO8601Date(images.get(0).getCreationDate()).compareTo(lastRun) >= 0) {
-          LOGGER.log(Level.INFO, "Triggering build for new image: " + images.get(0).toString());
-          lastRun = new Date();
-          try {
+    try {
+      for(AwsAmiTriggerFilter filter : filters) {
+        List<Image> images = getEc2Service().describeImages(filter.toAWSFilters());
+        if(!images.isEmpty()) {
+          if(DateUtils.parseISO8601Date(images.get(0).getCreationDate()).compareTo(lastRun) >= 0) {
+            LOGGER.log(Level.INFO, Messages.TriggeringBuild(images.get(0).toString()));
+            lastRun = new Date();
             job.save();
             job.scheduleBuild(new AwsAmiTriggerCause(this, images.get(0)));
-          } catch(IOException e) {
-            LOGGER.log(Level.WARNING, "Failed to save last run time, build not triggered", e);
           }
         }
       }
+    } catch(IOException e) {
+      LOGGER.log(Level.WARNING, Messages.TriggeringFailed(), e);
     }
   }
 
@@ -112,7 +112,7 @@ public final class AwsAmiTrigger extends Trigger<BuildableItem> {
 
   public String getRegionName() {
       return regionName;
- }
+  }
 
   public List<AwsAmiTriggerFilter> getFilters() {
     return filters;
@@ -214,8 +214,7 @@ public final class AwsAmiTrigger extends Trigger<BuildableItem> {
                                        @QueryParameter("ownerId") final String testOwnerId,
                                        @QueryParameter("productCode") final String testProductCode,
                                        @QueryParameter("tags") final String testTags,
-                                       @QueryParameter("shared") final String testShared
-                                       ) throws IOException, ServletException {
+                                       @QueryParameter("shared") final String testShared) throws IOException, ServletException {
       final StringBuffer testResults = new StringBuffer();
       final EC2Service testEc2Service = new EC2Service(testCredentialsId, testRegionName);
       final AwsAmiTriggerFilter testFilter = new AwsAmiTriggerFilter(testArchitecture, testDescription, testName, testOwnerAlias, testOwnerId, testProductCode, testTags, testShared);

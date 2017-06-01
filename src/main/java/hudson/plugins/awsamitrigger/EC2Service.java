@@ -45,36 +45,33 @@ public final class EC2Service {
     this.regionName = regionName;
   }
 
-  AmazonEC2Client getAmazonEC2Client() {
+  private AmazonEC2Client getAmazonEC2Client() {
     final AmazonEC2Client client;
 
-    ProxyConfiguration proxy = Jenkins.getInstance().proxy;
     ClientConfiguration clientConfiguration = new ClientConfiguration();
-    if(proxy != null) {
-      clientConfiguration.setProxyHost(proxy.name);
-      clientConfiguration.setProxyPort(proxy.port);
-      clientConfiguration.setProxyUsername(proxy.getUserName());
-      clientConfiguration.setProxyPassword(proxy.getPassword());
+    Jenkins jenkins = Jenkins.getInstance();
+    if(jenkins != null) {
+      ProxyConfiguration proxy = jenkins.proxy;
+      if(proxy != null) {
+        clientConfiguration.setProxyHost(proxy.name);
+        clientConfiguration.setProxyPort(proxy.port);
+        clientConfiguration.setProxyUsername(proxy.getUserName());
+        clientConfiguration.setProxyPassword(proxy.getPassword());
+      }
     }
 
     AmazonWebServicesCredentials credentials = getCredentials(credentialsId);
     if(credentials == null) {
       client = new AmazonEC2Client(clientConfiguration);
     } else {
-      if(LOGGER.isLoggable(Level.FINE)) {
-        String awsAccessKeyId = credentials.getCredentials().getAWSAccessKeyId();
-        String obfuscatedAccessKeyId = StringUtils.left(awsAccessKeyId, 4) + StringUtils.repeat("*", awsAccessKeyId.length() - (2 * 4)) + StringUtils.right(awsAccessKeyId, 4);
-        LOGGER.log(Level.FINE, "Connect to Amazon ECS with IAM Access Key {1}", new Object[]{obfuscatedAccessKeyId});
-      }
       client = new AmazonEC2Client(credentials, clientConfiguration);
     }
     client.setRegion(getRegion(regionName));
-    LOGGER.log(Level.FINE, "Selected Region: {0}", regionName);
 
     return client;
   }
 
-  Region getRegion(String regionName) {
+  private Region getRegion(String regionName) {
     if(StringUtils.isNotEmpty(regionName)) {
         return RegionUtils.getRegion(regionName);
     } else {
