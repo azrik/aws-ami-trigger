@@ -34,7 +34,7 @@
   <f:entry title="${%Amazon EC2 Credentials}" field="credentialsId" description="AWS credentials">
     <c:select/>
   </f:entry>
-  <f:entry title="${%Amazon ECS Region Name}" field="regionName" description="AWS regionName for EC2 or if not specified, use us-east-1">
+  <f:entry title="${%Amazon EC2 Region Name}" field="regionName" description="AWS regionName for EC2 or if not specified, use us-east-1">
     <f:select />
   </f:entry>
   <f:entry title="${%Filters}" field="filters">
