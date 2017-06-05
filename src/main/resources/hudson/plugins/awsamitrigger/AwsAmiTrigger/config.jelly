@@ -38,7 +38,7 @@
     <f:select />
   </f:entry>
   <f:entry title="${%Filters}" field="filters">
-    <f:repeatable var="it" name="filters" items="${instance.filters}">
+    <f:repeatable var="it" name="filters" items="${instance.filters}" minimum="1">
       <table width="100%">
         <st:include page="config.jelly" class="hudson.plugins.awsamitrigger.AwsAmiTriggerFilter"/>
         <f:entry title="">

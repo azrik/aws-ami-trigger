@@ -29,7 +29,7 @@
   <f:entry title="${%Description}" field="description" description="The description of the image (provided during image creation)">
     <f:textbox/>
   </f:entry>
-  <f:entry title="${%Tags}" field="tags" description="Format :key=*value*[;:key=*value] - the key/tag combination(s) of a tag assigned to the resource">
+  <f:entry title="${%Tags}" field="tags" description="Format key=value[;key=value] - the key/tag combination(s) of a tag assigned to the resource">
     <f:textbox/>
   </f:entry>
   <f:advanced>
