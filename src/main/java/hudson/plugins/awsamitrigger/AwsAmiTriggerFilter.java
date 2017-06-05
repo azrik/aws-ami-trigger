@@ -147,7 +147,7 @@ public final class AwsAmiTriggerFilter extends AbstractDescribableImpl<AwsAmiTri
    * Gets is-public filter.
    * @return is-public value for image (true|false)
    */
-  public String isShared() {
+  public String getShared() {
     return shared;
   }
 

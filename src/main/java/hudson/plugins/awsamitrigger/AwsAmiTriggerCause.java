@@ -61,6 +61,6 @@ public final class AwsAmiTriggerCause extends Cause {
    */
   @Override
   public String getShortDescription() {
-    return Messages.Cause(image.getDescription());
+    return Messages.Cause(image.getImageId());
   }
 }

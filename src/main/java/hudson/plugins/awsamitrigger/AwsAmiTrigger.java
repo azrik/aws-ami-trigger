@@ -61,6 +61,8 @@ import jenkins.model.Jenkins;
 
 import org.apache.commons.lang.CharUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang.builder.ToStringStyle;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
@@ -102,6 +104,7 @@ public final class AwsAmiTrigger extends Trigger<BuildableItem> {
     this.regionName = regionName;
     this.filters = filters;
     this.lastRun = new Date();
+    LOGGER.log(Level.INFO, "constructor:" + toString());
   }
 
   /**
@@ -122,6 +125,7 @@ public final class AwsAmiTrigger extends Trigger<BuildableItem> {
    */
   @Override
   public void run() {
+    LOGGER.log(Level.INFO, "run:" + toString());
     try {
       for(AwsAmiTriggerFilter filter : filters) {
         List<Image> images = getEc2Service().describeImages(filter.toAWSFilters());
@@ -130,7 +134,9 @@ public final class AwsAmiTrigger extends Trigger<BuildableItem> {
             LOGGER.log(Level.INFO, Messages.TriggeringBuild(images.get(0).toString()));
             lastRun = new Date();
             job.save();
-            job.scheduleBuild(new AwsAmiTriggerCause(this, images.get(0)));
+            boolean scheduled = job.scheduleBuild(new AwsAmiTriggerCause(this, images.get(0)));
+            LOGGER.log(Level.INFO, String.valueOf(scheduled));
+            LOGGER.log(Level.INFO, job.getName());
           }
         }
       }
@@ -161,6 +167,20 @@ public final class AwsAmiTrigger extends Trigger<BuildableItem> {
    */
   public List<AwsAmiTriggerFilter> getFilters() {
     return filters;
+  }
+
+  /**
+   * Converts {@link AwsAmiTrigger} into a <code>String</code>
+   * representation.
+   *
+   * @return string containing all fields
+   */
+  public String toString() {
+    return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
+      .append("credentialsId", credentialsId)
+      .append("regionName", regionName)
+      .append("lastRun", lastRun)
+      .append("filters", filters).toString();
   }
 
   /**

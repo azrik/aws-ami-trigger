@@ -29,6 +29,8 @@ import hudson.model.EnvironmentContributor;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 
+import org.apache.commons.lang.StringUtils;
+
 /**
  * Environment contributor for {@link AwsAmiTrigger}. Sets environment
  * variables from the associated {@link AwsAmiTriggerCause}.
@@ -81,14 +83,14 @@ public final class AwsAmiTriggerEnvironmentContributor extends EnvironmentContri
   private void populateEnvironment(Run<?,?> run, EnvVars envVars, TaskListener taskListener) {
     AwsAmiTriggerCause cause = run.getCause(AwsAmiTriggerCause.class);
     if (cause != null) {
-      envVars.put("awsAmiTriggerImageArchitecture", cause.getImage().getArchitecture());
-      envVars.put("awsAmiTriggerImageCreationDate", cause.getImage().getCreationDate());
-      envVars.put("awsAmiTriggerImageDescription", cause.getImage().getDescription());
-      envVars.put("awsAmiTriggerImageHypervisor", cause.getImage().getHypervisor());
-      envVars.put("awsAmiTriggerImageId", cause.getImage().getImageId());
-      envVars.put("awsAmiTriggerImageType", cause.getImage().getImageType());
-      envVars.put("awsAmiTriggerImageName", cause.getImage().getName());
-      envVars.put("awsAmiTriggerOwnerId", cause.getImage().getOwnerId());
+      envVars.put("awsAmiTriggerImageArchitecture", StringUtils.defaultString(cause.getImage().getArchitecture()));
+      envVars.put("awsAmiTriggerImageCreationDate", StringUtils.defaultString(cause.getImage().getCreationDate()));
+      envVars.put("awsAmiTriggerImageDescription", StringUtils.defaultString(cause.getImage().getDescription()));
+      envVars.put("awsAmiTriggerImageHypervisor", StringUtils.defaultString(cause.getImage().getHypervisor()));
+      envVars.put("awsAmiTriggerImageId", StringUtils.defaultString(cause.getImage().getImageId()));
+      envVars.put("awsAmiTriggerImageType", StringUtils.defaultString(cause.getImage().getImageType()));
+      envVars.put("awsAmiTriggerImageName", StringUtils.defaultString(cause.getImage().getName()));
+      envVars.put("awsAmiTriggerOwnerId", StringUtils.defaultString(cause.getImage().getOwnerId()));
     }
   }
 }
