@@ -26,6 +26,8 @@ The filters are configured on the build configuration page:
 
 ![Screenshot](images/screenshot-1.png)
 
+This has the following fields:
+
   * **Schedule** - a cron style schedule for the trigger
   * **Amazon EC2 Credentials** - the id of credentials added via the [AWS Credentials Plugin](https://plugins.jenkins.io/aws-credentials)
   * **Amazon EC2 Region Name** - the region name to search for AMIs (defaults to `us-east-1`)
@@ -45,26 +47,18 @@ Advanced filters may also be specified:
   * **Product Code** - the product code
   * **Public** - a boolean that indicates whether the image is public
 
+Click **Test Filter** to test the filter before saving. This displays the number of AMIs currently matching the filter and the top 10
+latest matches. It displays the following attributes of those images: `creation-date`, `image-id`, `name` and `description`.
+
 ![Screenshot](images/screenshot-3.png)
 
-Click **Test Filter** to test the filter before saving. This displays the number of AMIs currently matching the filter and the top 10
-matches. It displays the following attributes of those images: `creation-date`, `image-id`, `name` and `description`.
 
-Click **Add** to add more filters. *Note that a build may be scheduled for each filter - if there is a new AMI matching each filter then
+Click **Add** to add more filters. *Note that a build could be scheduled for each filter - if there is a new AMI matching each filter then
 a build will be scheduled for each one.*
 
 ## Environment variables
 
-envVars.put("awsAmiTriggerImageArchitecture", cause.getImage().getArchitecture());
-envVars.put("awsAmiTriggerImageCreationDate", cause.getImage().getCreationDate());
-envVars.put("awsAmiTriggerImageDescription", cause.getImage().getDescription());
-envVars.put("awsAmiTriggerImageHypervisor", cause.getImage().getHypervisor());
-envVars.put("awsAmiTriggerImageId", cause.getImage().getImageId());
-envVars.put("awsAmiTriggerImageType", cause.getImage().getImageType());
-envVars.put("awsAmiTriggerImageName", cause.getImage().getName());
-envVars.put("awsAmiTriggerOwnerId", cause.getImage().getOwnerId());
-
-For each build triggered the following environment variables are set:
+For each build triggered the following environment variables are available to the build:
 
   * `awsAmiTriggerImageArchitecture` - the image architecture (`i386` | `x86_64`)
   * `awsAmiTriggerImageCreationDate` - the date and time the image was created
