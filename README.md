@@ -11,7 +11,7 @@ The following filters are supported:
   * `description` - The description of the image (provided during image creation - supports wildcards)
   * `tags` (key=value) - The key/value combination of a tag assigned to the resource
 
-The following advanced attributes are also supported:
+The following advanced filters are also supported:
   * `architecture` - the image architecture (`i386` | `x86_64`)
   * `is-public` - a boolean that indicates whether the image is public
   * `owner-alias` - string value from an Amazon-maintained list (`amazon` | `aws-marketplace` | `microsoft`) of snapshot owners
@@ -53,18 +53,37 @@ latest matches. It displays the following attributes of those images: `creation-
 ![Screenshot](images/screenshot-3.png)
 
 
-Click **Add** to add more filters. *Note that a build could be scheduled for each filter - if there is a new AMI matching each filter then
-a build will be scheduled for each one.*
+Click **Add** to add more filters.
 
 ## Environment variables
 
-For each build triggered the following environment variables are available to the build:
+For each build that is triggered, the following environment variable indicates how many of the filters triggered:
+  * `awsAmiTriggerCount` - count of the number of filters that triggered
 
-  * `awsAmiTriggerImageArchitecture` - the image architecture (`i386` | `x86_64`)
-  * `awsAmiTriggerImageCreationDate` - the date and time the image was created
-  * `awsAmiTriggerImageDescription` - the description of the AMI that was provided during image creation
-  * `awsAmiTriggerImageHypervisor` - the hypervisor type of the image (`ovm` | `xen`)
-  * `awsAmiTriggerImageId` - the ID of the AMI
-  * `awsAmiTriggerImageType` - the type of image (`machine` | `kernel` | `ramdisk`)
-  * `awsAmiTriggerImageName` - the name of the AMI that was provided during image creation
-  * `awsAmiTriggerOwnerId` - the AWS account ID of the image owner
+For each filter that triggered, the following image related environment variables are available to the build:
+
+  * `awsAmiTriggerImageArchitecture1` - the image architecture (`i386` | `x86_64`)
+  * `awsAmiTriggerImageCreationDate1` - the date and time the image was created
+  * `awsAmiTriggerImageDescription1` - the description of the AMI that was provided during image creation
+  * `awsAmiTriggerImageHypervisor1` - the hypervisor type of the image (`ovm` | `xen`)
+  * `awsAmiTriggerImageId1` - the ID of the AMI
+  * `awsAmiTriggerImageType1` - the type of image (`machine` | `kernel` | `ramdisk`)
+  * `awsAmiTriggerImageName1` - the name of the AMI that was provided during image creation
+  * `awsAmiTriggerOwnerAlias1` - the AWS account alias (for example, amazon, self) or the AWS account ID of the AMI owner
+  * `awsAmiTriggerOwnerId1` - the AWS account ID of the image owner
+  * `awsAmiTriggerImageProductCodes1` - Any product codes associated with the AMI
+  * `awsAmiTriggerImageTags1` - Any tags assigned to the image
+  * `awsAmiTriggerImageIsPublic1` - Indicates whether the image has public launch permissions
+
+Also, the values of the triggered filter are available as:
+
+  * `awsAmiTriggerFilterArchitecture1`
+  * `awsAmiTriggerFilterDescription1`
+  * `awsAmiTriggerFilterName1`
+  * `awsAmiTriggerFilterOwnerAlias1`
+  * `awsAmiTriggerFilterOwnerId1`
+  * `awsAmiTriggerFilterProductCode1`
+  * `awsAmiTriggerFilterTags1`
+  * `awsAmiTriggerFilterIsPublic1`
+
+No variables are set for filters that did not match any new AMIs.

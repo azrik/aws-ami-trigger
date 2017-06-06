@@ -120,29 +120,42 @@ public final class AwsAmiTrigger extends Trigger<BuildableItem> {
   }
 
   /**
-   * Checks for new AMIs since the last run. A job is scheduled for each
-   * filter that has a new AMI.
+   * Checks for new AMIs since the last run. A new job is scheduled
+   * if any of the filters match.
    */
   @Override
   public void run() {
     LOGGER.log(Level.INFO, "run:" + toString());
-    try {
-      for(AwsAmiTriggerFilter filter : filters) {
-        List<Image> images = getEc2Service().describeImages(filter.toAWSFilters());
-        if(!images.isEmpty()) {
-          if(DateUtils.parseISO8601Date(images.get(0).getCreationDate()).compareTo(lastRun) >= 0) {
-            LOGGER.log(Level.INFO, Messages.TriggeringBuild(images.get(0).toString()));
-            lastRun = new Date();
-            job.save();
-            boolean scheduled = job.scheduleBuild(new AwsAmiTriggerCause(this, images.get(0)));
-            LOGGER.log(Level.INFO, String.valueOf(scheduled));
-            LOGGER.log(Level.INFO, job.getName());
-          }
+
+    AwsAmiTriggerCause cause = null;
+    for(AwsAmiTriggerFilter filter : filters) {
+      Image image = getEc2Service().fetchLatestImage(filter.toAWSFilters());
+      //if(isNewImage(image)) {
+        if(cause == null) {
+          cause = new AwsAmiTriggerCause(this);
         }
-      }
-    } catch(IOException e) {
-      LOGGER.log(Level.WARNING, Messages.TriggeringFailed(), e);
+        cause.addMatch(filter, image);
+      //}
     }
+
+    if(cause != null) {
+      try {
+        lastRun = new Date();
+        job.save();
+        job.scheduleBuild(cause);
+      } catch(IOException e) {
+        LOGGER.log(Level.WARNING, Messages.TriggeringFailed(), e);
+      }
+    }
+  }
+
+  /**
+   * Checks if the image has a <code>creationDate</code> newer than the
+   * <code>lastRun</code> of the trigger.
+   * @return true if the image is newer than the lastRun time
+   */
+  private boolean isNewImage(Image image) {
+    return (DateUtils.parseISO8601Date(image.getCreationDate()).compareTo(lastRun) >= 0);
   }
 
   /**

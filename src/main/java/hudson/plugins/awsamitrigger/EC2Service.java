@@ -166,4 +166,21 @@ public final class EC2Service {
     });
     return images;
   }
+
+  /**
+   * Fetches the latest image matching the supplied <code>filters</code>.
+   *
+   * @param filters   collection of AWS <code>Filter</code>
+   * @return the latest AWS image matching the <code>filters</code>
+   */
+  public Image fetchLatestImage(Collection<Filter> filters) {
+    Image image = null;
+
+    List<Image> images = describeImages(filters);
+    if(!images.isEmpty()) {
+      image = images.get(0);
+    }
+
+    return image;
+  }
 }

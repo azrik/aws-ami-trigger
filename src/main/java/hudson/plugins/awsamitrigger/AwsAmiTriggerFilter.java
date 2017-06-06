@@ -188,7 +188,7 @@ public final class AwsAmiTriggerFilter extends AbstractDescribableImpl<AwsAmiTri
         if(nv.length != 2) {
           LOGGER.log(Level.WARNING, "Invalid tags specification {0}", nv);
         } else {
-          filters.add(new Filter(":"+nv[0],Collections.singletonList(nv[1])));
+          filters.add(new Filter("tag:"+nv[0],Collections.singletonList(nv[1])));
         }
       }
     }
