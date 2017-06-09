@@ -51,5 +51,5 @@
       </f:entry>
     </f:section>
   </f:advanced>
-  <f:validateButton title="${%Test Filter}" progress="${%Testing...}" method="testFilter" with="credentialsId,regionName,name,description,architecture,ownerAlias,ownerId,productCode,tag,shared" />
+  <f:validateButton title="${%Test Filter}" progress="${%Testing...}" method="testFilter" with="credentialsId,regionName,name,description,architecture,ownerAlias,ownerId,productCode,tags,shared" />
 </j:jelly>

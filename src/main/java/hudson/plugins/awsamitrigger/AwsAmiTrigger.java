@@ -130,12 +130,12 @@ public final class AwsAmiTrigger extends Trigger<BuildableItem> {
     AwsAmiTriggerCause cause = null;
     for(AwsAmiTriggerFilter filter : filters) {
       Image image = getEc2Service().fetchLatestImage(filter.toAWSFilters());
-      //if(isNewImage(image)) {
+      if(isNewImage(image)) {
         if(cause == null) {
           cause = new AwsAmiTriggerCause(this);
         }
         cause.addMatch(filter, image);
-      //}
+      }
     }
 
     if(cause != null) {
@@ -155,7 +155,7 @@ public final class AwsAmiTrigger extends Trigger<BuildableItem> {
    * @return true if the image is newer than the lastRun time
    */
   private boolean isNewImage(Image image) {
-    return (DateUtils.parseISO8601Date(image.getCreationDate()).compareTo(lastRun) >= 0);
+    return (image != null && DateUtils.parseISO8601Date(image.getCreationDate()).compareTo(lastRun) >= 0);
   }
 
   /**
@@ -183,6 +183,14 @@ public final class AwsAmiTrigger extends Trigger<BuildableItem> {
   }
 
   /**
+   * Gets the last time the trigger checked for new images.
+   * @return the last run
+   */
+  public Date getLastRun() {
+    return lastRun;
+  }
+
+  /**
    * Converts {@link AwsAmiTrigger} into a <code>String</code>
    * representation.
    *
@@ -197,13 +205,13 @@ public final class AwsAmiTrigger extends Trigger<BuildableItem> {
   }
 
   /**
-   * A Jenkins <code>DescriptorImpl</code> for the {@link AwsAmiTrigger}.
+   * A Jenkins <code>TriggerDescriptor</code> for the {@link AwsAmiTrigger}.
    *
    * @author Rik Turnbull
    *
    */
   @Extension
-  public static final class DescriptorImpl extends TriggerDescriptor {
+  public static final class AwsAmiTriggerDescriptor extends TriggerDescriptor {
 
     /**
      * Returns the applicability of this trigger.

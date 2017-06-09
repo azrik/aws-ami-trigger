@@ -217,13 +217,13 @@ public final class AwsAmiTriggerFilter extends AbstractDescribableImpl<AwsAmiTri
   }
 
   /**
-   * A Jenkins <code>DescriptorImpl</code> for the {@link AwsAmiTriggerFilter}.
+   * A Jenkins <code>Descriptor</code> for the {@link AwsAmiTriggerFilter}.
    *
    * @author Rik Turnbull
    *
    */
   @Extension
-  public static final class DescriptorImpl extends Descriptor<AwsAmiTriggerFilter> {
+  public static final class AwsAmiTriggerFilterDescriptor extends Descriptor<AwsAmiTriggerFilter> {
 
     /**
      * Returns the trigger display name.

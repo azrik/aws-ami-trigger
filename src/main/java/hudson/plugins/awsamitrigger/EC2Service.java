@@ -62,7 +62,7 @@ import org.apache.commons.lang.StringUtils;
  * @author Rik Turnbull
  *
  */
-public final class EC2Service {
+public class EC2Service {
   private static final Logger LOGGER = Logger.getLogger(EC2Service.class.getName());
 
   private AmazonEC2Client client;
