@@ -28,17 +28,20 @@ import com.amazonaws.services.ec2.model.ProductCode;
 import com.amazonaws.services.ec2.model.Tag;
 import com.amazonaws.util.DateUtils;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import hudson.EnvVars;
 
+import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
- * Run tests for {@link AwsAmiTrigger}.
+ * Run tests for {@link AwsAmiTriggerCause}.
  *
  * @author Rik Turnbull
  *
@@ -61,67 +64,57 @@ public class AwsAmiTriggerCauseTest extends AwsAmiAbstractTest {
   private final static String TAGS = TAG_KEY + "=" + TAG_VALUE;
   private final static String SHARED = "true";
 
-  /**
-   * Test that the short description is correct.
-   */
-  @Test
-  public void testAddMatch() {
-    AwsAmiTriggerCause cause = new AwsAmiTriggerCause();
-    AwsAmiTriggerFilter filter = getFilter();
-    Image image = getImage();
-    cause.addMatch(filter, image);
-
-    Assert.assertEquals("getCredentialsId()", "Started due to new matching image(s): " + IMAGE_ID, cause.getShortDescription());
-  }
+  private final static String SHORT_DESCRIPTION_PREFIX = "Started due to new matching image(s): ";
 
   /**
-   * Test that nothing fails if no filters match.
+   * Test that nothing fails if no matches are added.
    */
   @Test
   public void testPopulateEnvironmentNone() {
-    AwsAmiTriggerCause cause = new AwsAmiTriggerCause();
-    AwsAmiTriggerFilter filter = getFilter();
-    Image image = getImage();
-    cause.addMatch(filter, image);
-
-    EnvVars envVars = new EnvVars();
-    cause.populateEnvironment(envVars);
+    testPopulateEnvironment(0);
   }
 
   /**
    * Test that the environment variables are populated correctly when
-   * only one filter matches.
+   * only one match is added.
    */
   @Test
   public void testPopulateEnvironmentSingle() {
-    AwsAmiTriggerCause cause = new AwsAmiTriggerCause();
-    AwsAmiTriggerFilter filter = getFilter();
-    Image image = getImage();
-    cause.addMatch(filter, image);
-
-    EnvVars envVars = new EnvVars();
-    cause.populateEnvironment(envVars);
-
-    assertEnvironmentVariablesSet(envVars,1);
+    testPopulateEnvironment(1);
   }
 
   /**
    * Test that the environment variables are populated correctly when
-   * multiple filters match.
+   * multiple matches are added.
    */
   @Test
   public void testPopulateEnvironmentMultiple() {
+    testPopulateEnvironment(2);
+  }
+
+  /**
+   * Tests that the environment variables are populated correctly
+   * for a certain number of matches.
+   *
+   * @param matches  number of matches to check for
+   */
+  private void testPopulateEnvironment(int matches) {
     AwsAmiTriggerCause cause = new AwsAmiTriggerCause();
-    AwsAmiTriggerFilter filter = getFilter();
-    Image image = getImage();
-    cause.addMatch(filter, image);
-    cause.addMatch(filter, image);
+    for(int i = 0; i < matches; i++) {
+      cause.addMatch(getFilter(), getImage());
+    }
 
     EnvVars envVars = new EnvVars();
     cause.populateEnvironment(envVars);
 
-    for(int suffix = 1; suffix <=2; suffix ++) {
-      assertEnvironmentVariablesSet(envVars, suffix);
+    List<String> imageIds = new ArrayList<String>();
+    for(int i = 0; i < matches; i++) {
+      imageIds.add(IMAGE_ID);
+    }
+
+    Assert.assertEquals("getShortDescription()", SHORT_DESCRIPTION_PREFIX + StringUtils.join(imageIds, ","), cause.getShortDescription());
+    for(int i = 0; i < matches; i++) {
+      assertEnvironmentVariablesSet(envVars, i+1);
     }
   }
 
