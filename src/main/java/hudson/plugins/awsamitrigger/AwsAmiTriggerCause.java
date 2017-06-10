@@ -24,6 +24,8 @@
 package hudson.plugins.awsamitrigger;
 
 import com.amazonaws.services.ec2.model.Image;
+import com.amazonaws.services.ec2.model.ProductCode;
+import com.amazonaws.services.ec2.model.Tag;
 
 import hudson.EnvVars;
 import hudson.model.Cause;
@@ -47,10 +49,8 @@ public final class AwsAmiTriggerCause extends Cause {
 
   /**
    * Creates a new {@link AwsAmiTriggerCause}.
-   *
-   * @param trigger         trigger details
    */
-  public AwsAmiTriggerCause(AwsAmiTrigger trigger) {
+  public AwsAmiTriggerCause() {
     super();
   }
 
@@ -138,8 +138,8 @@ public final class AwsAmiTriggerCause extends Cause {
       putEnvVar(envVars, "awsAmiTriggerImageName", suffix, image.getName());
       putEnvVar(envVars, "awsAmiTriggerImageOwnerAlias", suffix, image.getImageOwnerAlias());
       putEnvVar(envVars, "awsAmiTriggerImageOwnerId", suffix, image.getOwnerId());
-      putEnvVar(envVars, "awsAmiTriggerImageProductCodes", suffix, image.getProductCodes());
-      putEnvVar(envVars, "awsAmiTriggerImageTags", suffix, image.getTags());
+      putEnvVar(envVars, "awsAmiTriggerImageProductCodes", suffix, getProductCodesEnvValue(image.getProductCodes()));
+      putEnvVar(envVars, "awsAmiTriggerImageTags", suffix, getTagsEnvValue(image.getTags()));
       putEnvVar(envVars, "awsAmiTriggerImageIsPublic", suffix, image.isPublic());
 
       putEnvVar(envVars, "awsAmiTriggerFilterArchitecture", suffix, filter.getArchitecture());
@@ -150,6 +150,26 @@ public final class AwsAmiTriggerCause extends Cause {
       putEnvVar(envVars, "awsAmiTriggerFilterProductCode", suffix, filter.getProductCode());
       putEnvVar(envVars, "awsAmiTriggerFilterTags", suffix, filter.getTags());
       putEnvVar(envVars, "awsAmiTriggerFilterIsPublic", suffix, filter.getShared());
+    }
+
+    private String getProductCodesEnvValue(List<ProductCode> productCodes) {
+      List<String> productCodesString = new ArrayList<String>();
+      if(productCodes != null) {
+        for(ProductCode productCode : productCodes) {
+          productCodesString.add(productCode.getProductCodeId());
+        }
+      }
+      return StringUtils.join(productCodesString, ",");
+    }
+
+    private String getTagsEnvValue(List<Tag> tags) {
+      List<String> tagsString = new ArrayList<String>();
+      if(tagsString != null) {
+        for(Tag tag : tags) {
+          tagsString.add(tag.getKey() + "=" + tag.getValue());
+        }
+      }
+      return StringUtils.join(tagsString, ";");
     }
 
     /**

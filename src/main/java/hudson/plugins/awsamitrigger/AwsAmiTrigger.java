@@ -132,7 +132,7 @@ public final class AwsAmiTrigger extends Trigger<BuildableItem> {
       Image image = getEc2Service().fetchLatestImage(filter.toAWSFilters());
       if(isNewImage(image)) {
         if(cause == null) {
-          cause = new AwsAmiTriggerCause(this);
+          cause = new AwsAmiTriggerCause();
         }
         cause.addMatch(filter, image);
       }

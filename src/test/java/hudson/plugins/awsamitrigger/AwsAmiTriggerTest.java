@@ -62,7 +62,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({AwsAmiTrigger.class})
-public class AwsAmiTriggerTest {
+public class AwsAmiTriggerTest extends AwsAmiAbstractTest {
 
   private final static String PROJECT_NAME = "build-me";
 
@@ -76,6 +76,8 @@ public class AwsAmiTriggerTest {
 
   private final static String ARCHITECTURE = "x86_64";
   private final static String DESCRIPTION = "description";
+  private final static String HYPERVISOR = "xen";
+  private final static String IMAGE_TYPE = "machine";
   private final static String NAME = "name";
   private final static String OWNER_ALIAS = "ownerAlias";
   private final static String OWNER_ID = "ownerId";
@@ -96,21 +98,21 @@ public class AwsAmiTriggerTest {
       "shared="       + SHARED;
 
   /**
-   * Tests that the getters returns values set in the constructor.
+   * Test that the getters returns values set in the constructor.
    * @throws ANTLRException if there is a problem with the trigger spec
    */
   @Test
   public void testConstructor() throws ANTLRException {
     AwsAmiTrigger trigger = getTrigger();
-    Assert.assertEquals("getCredentialsId()", trigger.getCredentialsId(), CREDENTIALS_ID);
-    Assert.assertEquals("getRegionName()", trigger.getRegionName(), REGION_NAME);
-    Assert.assertEquals("getSpec()", trigger.getSpec(), SPEC);
-    Assert.assertEquals("getFilters()", trigger.getFilters().toString(), "[AwsAmiTriggerFilter[" + FILTER_TO_STRING + "]]");
+    Assert.assertEquals("getCredentialsId()", CREDENTIALS_ID, trigger.getCredentialsId());
+    Assert.assertEquals("getRegionName()", REGION_NAME, trigger.getRegionName());
+    Assert.assertEquals("getSpec()", SPEC, trigger.getSpec());
+    Assert.assertEquals("getFilters()", "[AwsAmiTriggerFilter[" + FILTER_TO_STRING + "]]", trigger.getFilters().toString());
     Assert.assertTrue("getLastRun()", ((new Date().getTime()-trigger.getLastRun().getTime())<1000));
   }
 
   /**
-   * Tests the <code>toString()</code> method returns all the fields.
+   * Test the <code>toString()</code> method returns all the fields.
    * @throws ANTLRException if there is a problem with the trigger spec
    */
   @Test
@@ -128,7 +130,7 @@ public class AwsAmiTriggerTest {
   }
 
   /**
-   * Tests that a build is triggered when a new image is found.
+   * Test that a build is triggered when a new image is found.
    * @throws ANTLRException if there is a problem with the trigger spec
    */
   @Test
@@ -137,7 +139,7 @@ public class AwsAmiTriggerTest {
   }
 
   /**
-   * Tests that a build is NOT triggered when a new image is not found.
+   * Test that a build is NOT triggered when a new image is not found.
    * @throws ANTLRException if there is a problem with the trigger spec
    */
    @Test
@@ -153,7 +155,7 @@ public class AwsAmiTriggerTest {
     */
   private void runTriggerAndCountMethodCalls(AwsAmiTrigger trigger, int saveMethodCount, int scheduleBuildMethodCount) {
     try {
-      BuildableItem buildableItemMock = mockBuildableItem();
+      BuildableItem buildableItemMock = mockBuildableItem(PROJECT_NAME);
       trigger.start(buildableItemMock, true);
       trigger.run();
       Mockito.verify(buildableItemMock, Mockito.times(saveMethodCount)).save();
@@ -164,67 +166,33 @@ public class AwsAmiTriggerTest {
   }
 
   /**
-   * Returns a trigger that will not trigger.
-   * @return trigger with mocked EC2Service
-   * @throws ANTLRException if there is a problem with the trigger spec
+   * Gets an image based on the constant values.
+   * @oaram creationDate image creation date
+   * @return an image
    */
+  private Image getImage(Date creationDate) {
+    return createImage(ARCHITECTURE, creationDate, DESCRIPTION, HYPERVISOR, IMAGE_ID,
+      IMAGE_TYPE, NAME, OWNER_ALIAS, OWNER_ID, PRODUCT_CODE, TAG_KEY, TAG_VALUE, SHARED);
+  }
+
+  /**
+  * Gets a trigger based on the constant values.
+  * @return a trigger
+  * @throws ANTLRException if there is a problem with the trigger spec
+  **/
   private AwsAmiTrigger getTrigger() throws ANTLRException {
-      return getTrigger(new Date());
+    return getTrigger(new Date());
   }
 
   /**
-   * Returns a trigger that will trigger depending on the image creation date.
-   * @param creationDate creation date of latest matching image
-   * @return trigger with mocked EC2Service
+   * Gets a trigger based on the constant values.
+   * @param creationDate the creation date of the mocked image
+   * @return a trigger
    * @throws ANTLRException if there is a problem with the trigger spec
-   */
+   **/
   private AwsAmiTrigger getTrigger(Date creationDate) throws ANTLRException {
-    mockEC2Service(creationDate);
-    return new AwsAmiTrigger(SPEC, CREDENTIALS_ID, REGION_NAME, Collections.singletonList(getFilter()));
-  }
-
-  /**
-   * Gets a filter.
-   * @return a filter
-   */
-  private AwsAmiTriggerFilter getFilter() {
-    return new AwsAmiTriggerFilter(ARCHITECTURE, DESCRIPTION, NAME, OWNER_ALIAS, OWNER_ID, PRODUCT_CODE, TAGS, SHARED);
-  }
-
-  /**
-   * Mocks the constructor and fetchLatestImage() methods of the <code>EC2Service</code>.
-   * @param creationDate creation date of latest matching image
-   */
-  private static void mockEC2Service(Date creationDate) {
-    Image image = new Image();
-    image.setArchitecture(ArchitectureValues.valueOf(ARCHITECTURE.toUpperCase()));
-    image.setCreationDate(DateUtils.formatISO8601Date(creationDate));
-    image.setDescription(DESCRIPTION);
-    image.setImageId(IMAGE_ID);
-    image.setName(NAME);
-    image.setImageOwnerAlias(OWNER_ALIAS);
-    image.setOwnerId(OWNER_ID);
-    image.setProductCodes(Collections.singletonList(new ProductCode().withProductCodeId(PRODUCT_CODE)));
-    image.setTags(Collections.singletonList(new Tag().withKey(TAG_KEY).withValue(TAG_VALUE)));
-    image.setPublic(SHARED.equals("true"));
-
-    EC2Service ec2ServiceMock = PowerMockito.mock(EC2Service.class);
-    PowerMockito.when(ec2ServiceMock.fetchLatestImage(Mockito.any(Collection.class))).thenReturn(image);
-    try {
-      PowerMockito.whenNew(EC2Service.class).withAnyArguments().thenReturn(ec2ServiceMock);
-    } catch(Exception e) {
-      Assert.fail("Unexpected exception: " + e.getMessage());
-    }
-  }
-
-  /**
-   * Mocks a the <code>getFullName()</code> method of the <code>BuildableItem</code>
-   * class. This method must return a value so that the trigger can start.
-   * @return BuildableItem mocked BuildableItem
-   */
-  private static BuildableItem mockBuildableItem() {
-    BuildableItem buildableItemMock = PowerMockito.mock(BuildableItem.class);
-    PowerMockito.when(buildableItemMock.getFullName()).thenReturn(PROJECT_NAME);
-    return buildableItemMock;
+    return createTrigger(getImage(creationDate), SPEC, CREDENTIALS_ID, REGION_NAME,
+      Collections.singletonList(createFilter(ARCHITECTURE, DESCRIPTION, NAME, OWNER_ALIAS,
+      OWNER_ID, PRODUCT_CODE, TAGS, SHARED)));
   }
 }
