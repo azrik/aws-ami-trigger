@@ -101,7 +101,7 @@ public class EC2Service {
         }
       }
 
-      AmazonWebServicesCredentials credentials = getCredentials(credentialsId);
+      AmazonWebServicesCredentials credentials = getAWSCredentials(credentialsId);
       if(credentials == null) {
         client = new AmazonEC2Client(clientConfiguration);
       } else {
@@ -133,7 +133,7 @@ public class EC2Service {
    * @return AWS credentials for <code>credentialsId</code> that can be used
    * for AWS calls
    */
-  private AmazonWebServicesCredentials getCredentials(String credentialsId) {
+  private AmazonWebServicesCredentials getAWSCredentials(String credentialsId) {
     return AWSCredentialsHelper.getCredentials(credentialsId, Jenkins.getActiveInstance());
   }
 

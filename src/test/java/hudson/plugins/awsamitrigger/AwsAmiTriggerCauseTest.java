@@ -49,21 +49,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 @RunWith(PowerMockRunner.class)
 public class AwsAmiTriggerCauseTest extends AwsAmiAbstractTest {
 
-  private final static String ARCHITECTURE = "x86_64";
-  private final static Date CREATION_DATE = new Date();
-  private final static String DESCRIPTION = "description";
-  private final static String HYPERVISOR = "xen";
-  private final static String IMAGE_ID = "ami-abc123";
-  private final static String IMAGE_TYPE = "machine";
-  private final static String NAME = "name";
-  private final static String OWNER_ALIAS = "ownerAlias";
-  private final static String OWNER_ID = "ownerId";
-  private final static String PRODUCT_CODE = "productCode";
-  private final static String TAG_KEY = "project";
-  private final static String TAG_VALUE = "jenkins";
-  private final static String TAGS = TAG_KEY + "=" + TAG_VALUE;
-  private final static String SHARED = "true";
-
   private final static String SHORT_DESCRIPTION_PREFIX = "Started due to new matching image(s): ";
 
   /**

@@ -56,6 +56,27 @@ import org.powermock.api.mockito.PowerMockito;
  */
 public abstract class AwsAmiAbstractTest {
 
+  protected final static String ANY = "- any -";
+
+  protected final static String CREDENTIALS_ID = "aws-credentials";
+  protected final static String REGION_NAME = "eu-west-1";
+  protected final static String SPEC = "* * * * *";
+
+  protected final static String ARCHITECTURE = "x86_64";
+  protected final static Date CREATION_DATE = new Date();
+  protected final static String DESCRIPTION = "description";
+  protected final static String HYPERVISOR = "xen";
+  protected final static String IMAGE_ID = "ami-abc123";
+  protected final static String IMAGE_TYPE = "machine";
+  protected final static String NAME = "name";
+  protected final static String OWNER_ALIAS = "ownerAlias";
+  protected final static String OWNER_ID = "ownerId";
+  protected final static String PRODUCT_CODE = "productCode";
+  protected final static String TAG_KEY = "project";
+  protected final static String TAG_VALUE = "jenkins";
+  protected final static String TAGS = TAG_KEY + "=" + TAG_VALUE;
+  protected final static String SHARED = "true";
+
   /**
    * Creates a new filter.
    *
@@ -112,7 +133,6 @@ public abstract class AwsAmiAbstractTest {
   /**
    * Creates a trigger that will trigger depending on the image creation date.
    *
-   * @param image           image that could cause the trigger to fire
    * @param spec            crontab specification that defines how often to poll
    * @param credentialsId   aws credentials id
    * @param regionName      aws region name
@@ -120,34 +140,17 @@ public abstract class AwsAmiAbstractTest {
    * @throws ANTLRException if unable to parse the crontab specification
    * @return trigger with mocked EC2Service
    */
-  protected AwsAmiTrigger createTrigger(Image image, String spec,
+  protected AwsAmiTrigger createTrigger(String spec,
     String credentialsId, String regionName, List<AwsAmiTriggerFilter> filters) throws ANTLRException {
-      mockEC2Service(image);
       return new AwsAmiTrigger(spec, credentialsId, regionName, filters);
   }
 
-  /**
-   * Mocks the constructor and fetchLatestImage() methods of the <code>EC2Service</code>.
-   * @param creationDate creation date of latest matching image
-   */
-  private void mockEC2Service(Image image) {
-    EC2Service ec2ServiceMock = PowerMockito.mock(EC2Service.class);
-    PowerMockito.when(ec2ServiceMock.fetchLatestImage(Mockito.any(Collection.class))).thenReturn(image);
-    try {
-      PowerMockito.whenNew(EC2Service.class).withAnyArguments().thenReturn(ec2ServiceMock);
-    } catch(Exception e) {
-      Assert.fail("Unexpected exception: " + e.getMessage());
-    }
+
+  protected String nullIfEmpty(String value) {
+    return StringUtils.defaultString(value, "<null>");
   }
 
-  /**
-   * Mocks a the <code>getFullName()</code> method of the <code>BuildableItem</code>
-   * class. This method must return a value so that the trigger can start.
-   * @return BuildableItem mocked BuildableItem
-   */
-  protected BuildableItem mockBuildableItem(String projectName) {
-    BuildableItem buildableItemMock = PowerMockito.mock(BuildableItem.class);
-    PowerMockito.when(buildableItemMock.getFullName()).thenReturn(projectName);
-    return buildableItemMock;
+  protected String escapeString(String text) {
+    return text.replace("-", "\\-").replace("[", "\\[").replace("]", "\\]");
   }
 }

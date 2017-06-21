@@ -32,6 +32,7 @@ import com.amazonaws.services.ec2.model.Tag;
 import com.amazonaws.util.DateUtils;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -46,6 +47,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameter;
+import org.junit.runners.Parameterized.Parameters;
 import org.mockito.Mockito;
 import org.powermock.api.easymock.PowerMock;
 import org.powermock.api.easymock.annotation.Mock;
@@ -53,6 +57,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 
 /**
  * Run tests for {@link AwsAmiTrigger}.
@@ -61,138 +66,198 @@ import org.powermock.modules.junit4.PowerMockRunner;
  *
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({AwsAmiTrigger.class})
+@PowerMockRunnerDelegate(value = Parameterized.class)
+@PrepareForTest(AwsAmiTrigger.class)
 public class AwsAmiTriggerTest extends AwsAmiAbstractTest {
 
-  private final static String PROJECT_NAME = "build-me";
+  @Parameter(0)
+  public String credentialsId;
+  @Parameter(1)
+  public String regionName;
+  @Parameter(2)
+  public String spec;
+  @Parameter(3)
+  public String filterArchitecture;
+  @Parameter(4)
+  public String filterDescription;
+  @Parameter(5)
+  public String filterName;
+  @Parameter(6)
+  public String filterOwnerAlias;
+  @Parameter(7)
+  public String filterOwnerId;
+  @Parameter(8)
+  public String filterProductCode;
+  @Parameter(9)
+  public String filterTags;
+  @Parameter(10)
+  public String filterShared;
+  @Parameter(11)
+  public String imageArchitecture;
+  @Parameter(12)
+  public Date imageCreationDate;
+  @Parameter(13)
+  public String imageDescription;
+  @Parameter(14)
+  public String imageName;
+  @Parameter(15)
+  public String imageOwnerAlias;
+  @Parameter(16)
+  public String imageOwnerId;
+  @Parameter(17)
+  public String imageProductCode;
+  @Parameter(18)
+  public String imageTags;
+  @Parameter(19)
+  public String imageShared;
+  @Parameter(20)
+  public String imageHypervisor;
+  @Parameter(21)
+  public String imageId;
+  @Parameter(22)
+  public String imageType;
+  @Parameter(23)
+  public String imageTagKey;
+  @Parameter(24)
+  public String imageTagValue;
+  @Parameter(25)
+  public int saveMethodCount;
+  @Parameter(26)
+  public int scheduleBuildMethodCount;
+  @Parameter(27)
+  public Boolean expectANTLRException;
 
-  private final static String CREDENTIALS_ID = "aws-credentials";
-  private final static String CREDENTIALS_ID_PATTERN = "aws\\-credentials";
-  private final static String REGION_NAME = "eu-west-1";
-  private final static String REGION_NAME_PATTERN = "eu\\-west\\-1";
-  private final static String SPEC = "* * * * *";
-
-  private final static String IMAGE_ID = "ami-abc123";
-
-  private final static String ARCHITECTURE = "x86_64";
-  private final static String DESCRIPTION = "description";
-  private final static String HYPERVISOR = "xen";
-  private final static String IMAGE_TYPE = "machine";
-  private final static String NAME = "name";
-  private final static String OWNER_ALIAS = "ownerAlias";
-  private final static String OWNER_ID = "ownerId";
-  private final static String PRODUCT_CODE = "productCode";
-  private final static String TAG_KEY = "project";
-  private final static String TAG_VALUE = "jenkins";
-  private final static String TAGS = TAG_KEY + "=" + TAG_VALUE;
-  private final static String SHARED = "true";
-
-  private final static String FILTER_TO_STRING =
-      "architecture=" + ARCHITECTURE + "," +
-      "description="  + DESCRIPTION  + "," +
-      "name="         + NAME         + "," +
-      "ownerAlias="   + OWNER_ALIAS  + "," +
-      "ownerId="      + OWNER_ID     + "," +
-      "productCode="  + PRODUCT_CODE + "," +
-      "tags="         + TAGS         + "," +
-      "shared="       + SHARED;
+  @Parameters
+  public static Collection<Object[]> data() {
+    return Arrays.asList(
+      new Object[][] {
+        { CREDENTIALS_ID, REGION_NAME, SPEC,
+            ARCHITECTURE, DESCRIPTION, NAME, OWNER_ALIAS, OWNER_ID, PRODUCT_CODE, TAGS, SHARED,
+            ARCHITECTURE, new Date(System.currentTimeMillis()+(1000*60*30)), DESCRIPTION, NAME, OWNER_ALIAS, OWNER_ID, PRODUCT_CODE, TAGS, SHARED,
+            HYPERVISOR, IMAGE_ID, IMAGE_TYPE, TAG_KEY, TAG_VALUE, 1, 1, false },
+        { CREDENTIALS_ID, REGION_NAME, SPEC,
+            ARCHITECTURE, DESCRIPTION, NAME, OWNER_ALIAS, OWNER_ID, PRODUCT_CODE, TAGS, SHARED,
+            ARCHITECTURE, new Date(), DESCRIPTION, NAME, OWNER_ALIAS, OWNER_ID, PRODUCT_CODE, TAGS, SHARED,
+            HYPERVISOR, IMAGE_ID, IMAGE_TYPE, TAG_KEY, TAG_VALUE, 0, 0, false },
+        { CREDENTIALS_ID, REGION_NAME, "invalid-spec",
+            ARCHITECTURE, DESCRIPTION, NAME, OWNER_ALIAS, OWNER_ID, PRODUCT_CODE, TAGS, SHARED,
+            ARCHITECTURE, new Date(), DESCRIPTION, NAME, OWNER_ALIAS, OWNER_ID, PRODUCT_CODE, TAGS, SHARED,
+            HYPERVISOR, IMAGE_ID, IMAGE_TYPE, TAG_KEY, TAG_VALUE, 0, 0, true },
+      }
+    );
+  }
 
   /**
    * Test that the getters returns values set in the constructor.
    * @throws ANTLRException if there is a problem with the trigger spec
    */
   @Test
-  public void testConstructor() throws ANTLRException {
-    AwsAmiTrigger trigger = getTrigger();
-    Assert.assertEquals("getCredentialsId()", CREDENTIALS_ID, trigger.getCredentialsId());
-    Assert.assertEquals("getRegionName()", REGION_NAME, trigger.getRegionName());
-    Assert.assertEquals("getSpec()", SPEC, trigger.getSpec());
-    Assert.assertEquals("getFilters()", "[AwsAmiTriggerFilter[" + FILTER_TO_STRING + "]]", trigger.getFilters().toString());
-    Assert.assertTrue("getLastRun()", ((new Date().getTime()-trigger.getLastRun().getTime())<1000));
-  }
-
-  /**
-   * Test the <code>toString()</code> method returns all the fields.
-   * @throws ANTLRException if there is a problem with the trigger spec
-   */
-  @Test
-  public void testToString() throws ANTLRException {
-    Assert.assertThat(getTrigger().toString(), Matchers.matchesPattern("AwsAmiTrigger\\[" +
-      "credentialsId=" + CREDENTIALS_ID_PATTERN  + "," +
-      "regionName="    + REGION_NAME_PATTERN     + "," +
-      "lastRun="       + ".{28}"                 + "," +
-      "filters="       +
-        "\\[AwsAmiTriggerFilter\\[" +
-              FILTER_TO_STRING +
-         "\\]\\]"              +
-      "\\]"
-    ));
-  }
-
-  /**
-   * Test that a build is triggered when a new image is found.
-   * @throws ANTLRException if there is a problem with the trigger spec
-   */
-  @Test
-  public void testRunAndSchedule() throws ANTLRException {
-    runTriggerAndCountMethodCalls(getTrigger(new Date(System.currentTimeMillis()*(1000*60*30))), 1, 1);
-  }
-
-  /**
-   * Test that a build is NOT triggered when a new image is not found.
-   * @throws ANTLRException if there is a problem with the trigger spec
-   */
-   @Test
-  public void testRunAndDoNotSchedule() throws ANTLRException {
-    runTriggerAndCountMethodCalls(getTrigger(), 0, 0);
-  }
-
-  /**
-    * Runs the trigger and counts the number of method calls.
-    * @param trigger                  the trigger to run
-    * @param saveMethodCount          number of save() method calls
-    * @param scheduleBuildMethodCount number of scheduleBuild() method calls
-    */
-  private void runTriggerAndCountMethodCalls(AwsAmiTrigger trigger, int saveMethodCount, int scheduleBuildMethodCount) {
+  public void testConstructor() {
     try {
-      BuildableItem buildableItemMock = mockBuildableItem(PROJECT_NAME);
-      trigger.start(buildableItemMock, true);
-      trigger.run();
-      Mockito.verify(buildableItemMock, Mockito.times(saveMethodCount)).save();
-      Mockito.verify(buildableItemMock, Mockito.times(scheduleBuildMethodCount)).scheduleBuild(Mockito.any(AwsAmiTriggerCause.class));
-    } catch(IOException e) {
-      Assert.fail("Unexpected exception: " + e.getMessage());
+      AwsAmiTrigger trigger = createTrigger();
+      Assert.assertEquals("getCredentialsId()", credentialsId, trigger.getCredentialsId());
+      Assert.assertEquals("getRegionName()", regionName, trigger.getRegionName());
+      Assert.assertEquals("getSpec()", spec, trigger.getSpec());
+      Assert.assertEquals("getFilters()", "[AwsAmiTriggerFilter[" +
+          "architecture=" + nullIfEmpty(filterArchitecture) + "," +
+          "description="  + nullIfEmpty(filterDescription)  + "," +
+          "name="         + nullIfEmpty(filterName)         + "," +
+          "ownerAlias="   + nullIfEmpty(filterOwnerAlias)   + "," +
+          "ownerId="      + nullIfEmpty(filterOwnerId)      + "," +
+          "productCode="  + nullIfEmpty(filterProductCode)  + "," +
+          "tags="         + nullIfEmpty(filterTags)         + "," +
+          "shared="       + nullIfEmpty(filterShared)             +
+        "]]", trigger.getFilters().toString()
+      );
+      Assert.assertTrue("getLastRun()", ((new Date().getTime()-trigger.getLastRun().getTime())<1000));
+    } catch(ANTLRException e) {
+      Assert.assertTrue("ANTLRException", expectANTLRException);
     }
   }
 
   /**
-   * Gets an image based on the constant values.
-   * @oaram creationDate image creation date
-   * @return an image
+   * Test the <code>toString()</code> method returns all the fields.
    */
-  private Image getImage(Date creationDate) {
-    return createImage(ARCHITECTURE, creationDate, DESCRIPTION, HYPERVISOR, IMAGE_ID,
-      IMAGE_TYPE, NAME, OWNER_ALIAS, OWNER_ID, PRODUCT_CODE, TAG_KEY, TAG_VALUE, SHARED);
+  @Test
+  public void testToString() {
+    try {
+      Assert.assertThat(createTrigger().toString(), Matchers.matchesPattern(escapeString("AwsAmiTrigger[" +
+        "credentialsId=" + nullIfEmpty(credentialsId)  + "," +
+        "regionName="    + nullIfEmpty(regionName)     + "," +
+        "lastRun="       + ".{28}"                     + "," +
+        "filters="       +
+          "[AwsAmiTriggerFilter[" +
+            "architecture=" + nullIfEmpty(filterArchitecture) + "," +
+            "description="  + nullIfEmpty(filterDescription)  + "," +
+            "name="         + nullIfEmpty(filterName)         + "," +
+            "ownerAlias="   + nullIfEmpty(filterOwnerAlias)   + "," +
+            "ownerId="      + nullIfEmpty(filterOwnerId)      + "," +
+            "productCode="  + nullIfEmpty(filterProductCode)  + "," +
+            "tags="         + nullIfEmpty(filterTags)         + "," +
+            "shared="       + nullIfEmpty(filterShared)             +
+           "]]"             +
+        "]"
+      )));
+    } catch(ANTLRException e) {
+      Assert.assertTrue("ANTLRException", expectANTLRException);
+    }
   }
 
   /**
-  * Gets a trigger based on the constant values.
-  * @return a trigger
-  * @throws ANTLRException if there is a problem with the trigger spec
-  **/
-  private AwsAmiTrigger getTrigger() throws ANTLRException {
-    return getTrigger(new Date());
+    * Runs the trigger and counts the number of method calls.
+    */
+  private void testRunTrigger() {
+    try {
+      AwsAmiTrigger trigger = createTrigger();
+      BuildableItem buildableItemMock = mockBuildableItem();
+      trigger.start(buildableItemMock, true);
+      trigger.run();
+      Mockito.verify(buildableItemMock, Mockito.times(saveMethodCount)).save();
+      Mockito.verify(buildableItemMock, Mockito.times(scheduleBuildMethodCount)).scheduleBuild(Mockito.any(AwsAmiTriggerCause.class));
+    } catch(ANTLRException ae) {
+      Assert.assertTrue("ANTLRException", expectANTLRException);
+    } catch(IOException ioe) {
+      Assert.fail("Unexpected exception: " + ioe.getMessage());
+    }
   }
 
   /**
-   * Gets a trigger based on the constant values.
-   * @param creationDate the creation date of the mocked image
+   * Creates a new trigger.
+   *
    * @return a trigger
    * @throws ANTLRException if there is a problem with the trigger spec
    **/
-  private AwsAmiTrigger getTrigger(Date creationDate) throws ANTLRException {
-    return createTrigger(getImage(creationDate), SPEC, CREDENTIALS_ID, REGION_NAME,
-      Collections.singletonList(createFilter(ARCHITECTURE, DESCRIPTION, NAME, OWNER_ALIAS,
-      OWNER_ID, PRODUCT_CODE, TAGS, SHARED)));
+  private AwsAmiTrigger createTrigger() throws ANTLRException {
+    mockEC2Service();
+    return createTrigger(spec, credentialsId, regionName,
+      Collections.singletonList(createFilter(filterArchitecture, filterDescription, filterName, filterOwnerAlias,
+        filterOwnerId, filterProductCode, filterTags, filterShared)));
+  }
+
+  /**
+   * Mocks a the <code>getFullName()</code> method of the <code>BuildableItem</code>
+   * class. This method must return a value so that the trigger can start.
+   *
+   * @return BuildableItem mocked BuildableItem
+   */
+  private BuildableItem mockBuildableItem() {
+    BuildableItem buildableItemMock = PowerMockito.mock(BuildableItem.class);
+    PowerMockito.when(buildableItemMock.getFullName()).thenReturn("projectName");
+    return buildableItemMock;
+  }
+
+  /**
+   * Mocks the constructor and fetchLatestImage() methods of the <code>EC2Service</code>.
+   */
+  private void mockEC2Service() {
+    EC2Service ec2ServiceMock = PowerMockito.mock(EC2Service.class);
+    PowerMockito.when(ec2ServiceMock.fetchLatestImage(Mockito.any(Collection.class))).thenReturn(
+      createImage(imageArchitecture, imageCreationDate, imageDescription, imageHypervisor, imageId,
+        imageType, imageName, imageOwnerAlias, imageOwnerId, imageProductCode, imageTagKey, imageTagValue, imageShared));
+    try {
+      PowerMockito.whenNew(EC2Service.class).withAnyArguments().thenReturn(ec2ServiceMock);
+    } catch(Exception e) {
+      Assert.fail("Unexpected exception: " + e.getMessage());
+    }
   }
 }
